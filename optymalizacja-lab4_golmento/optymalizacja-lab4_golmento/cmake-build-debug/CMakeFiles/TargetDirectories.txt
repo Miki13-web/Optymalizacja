@@ -1,0 +1,3 @@
+F:/Studia-różne/semestr_5/optymalizacja/lab2/cmake-build-debug/CMakeFiles/Pliki_rodowe.dir
+F:/Studia-różne/semestr_5/optymalizacja/lab2/cmake-build-debug/CMakeFiles/edit_cache.dir
+F:/Studia-różne/semestr_5/optymalizacja/lab2/cmake-build-debug/CMakeFiles/rebuild_cache.dir

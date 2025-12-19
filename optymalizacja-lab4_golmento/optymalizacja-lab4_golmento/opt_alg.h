@@ -29,8 +29,3 @@ solution golden(matrix(*ff)(matrix, matrix, matrix), double a, double b, double 
 solution Powell(matrix(*ff)(matrix, matrix, matrix), matrix x0, double epsilon, int Nmax, matrix ud1 = 0, matrix ud2 = 0); // throw (string);
 
 solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, int mi, int lambda, matrix sigma0, double epsilon, int Nmax, matrix ud1 = 0, matrix ud2 = 0); // throw (string);
-
-// Dodaj na końcu pliku opt_alg.h przed ostatnimi klamrami/dyrektywami
-solution SD_trace(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, matrix), matrix x0, double h0, double epsilon, int Nmax, std::ofstream& Sout, matrix ud1 = 0, matrix ud2 = 0);
-solution CG_trace(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, matrix), matrix x0, double h0, double epsilon, int Nmax, std::ofstream& Sout, matrix ud1 = 0, matrix ud2 = 0);
-solution Newton_trace(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, matrix), matrix(*Hf)(matrix, matrix, matrix), matrix x0, double h0, double epsilon, int Nmax, std::ofstream& Sout, matrix ud1 = 0, matrix ud2 = 0);

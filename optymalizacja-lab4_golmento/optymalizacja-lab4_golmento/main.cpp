@@ -462,135 +462,167 @@ void lab4()
 {
 	try
 	{
-		// Parametry ogólne zadania [cite: 102]
+		// Parametry ogólne
 		double epsilon = 1e-6;
 		int Nmax = 10000;
 
 		// ========================================================================
-		// NOWA SEKCJA: GENEROWANIE DANYCH DO WYKRESOW (Zadanie 5a - Wybrane)
-		// ========================================================================
-		std::cout << "\n--- GENEROWANIE TRAJEKTORII DLA PUNKTU (0.7, 1.69) ---" << std::endl;
-
-		// Punkt startowy wybrany przez użytkownika [cite: 33]
-		matrix x0_trace(2, 1);
-		x0_trace(0) = 0.2;
-		x0_trace(1) = 0.5;
-
-		double steps_trace[] = { 0.05, 0.25, 0.0 };
-		std::string step_names_trace[] = { "005", "025", "zk" };
-
-		for (int i = 0; i < 3; ++i) {
-			// Metoda najszybszego spadku (SD) [cite: 76, 125]
-			std::string n_sd = "trace_SD_" + step_names_trace[i] + ".csv";
-			std::ofstream fsd(n_sd);
-			if (fsd.is_open()) {
-				solution::clear_calls();
-				SD_trace(ff4T, gf4T, x0_trace, steps_trace[i], epsilon, Nmax, fsd);
-				fsd.close();
-				std::cout << "Wygenerowano: " << n_sd << std::endl;
-			}
-
-			// Metoda gradientów sprzężonych (CG) [cite: 76, 126]
-			std::string n_cg = "trace_CG_" + step_names_trace[i] + ".csv";
-			std::ofstream fcg(n_cg);
-			if (fcg.is_open()) {
-				solution::clear_calls();
-				CG_trace(ff4T, gf4T, x0_trace, steps_trace[i], epsilon, Nmax, fcg);
-				fcg.close();
-				std::cout << "Wygenerowano: " << n_cg << std::endl;
-			}
-
-			// Metoda Newtona [cite: 76, 127]
-			std::string n_nw = "trace_Newton_" + step_names_trace[i] + ".csv";
-			std::ofstream fnw(n_nw);
-			if (fnw.is_open()) {
-				solution::clear_calls();
-				Newton_trace(ff4T, gf4T, hf4T, x0_trace, steps_trace[i], epsilon, Nmax, fnw);
-				fnw.close();
-				std::cout << "Wygenerowano: " << n_nw << std::endl;
-			}
-		}
-		std::cout << "--- KONIEC GENEROWANIA DANYCH DO WYKRESOW ---\n" << std::endl;
-
-		// ========================================================================
-		// ZADANIE 5a: Testowa funkcja celu (Statystyka 100 punktów) [cite: 81]
+		// ZADANIE 5a: Testowa funkcja celu (Teoretyczne)
 		// ========================================================================
 #ifdef TEORETYCZNE4
-		std::cout << "Rozpoczynam zadanie 5a (100 optymalizacji)..." << std::endl;
+		std::cout << "Rozpoczynam zadanie 5a (funkcja testowa)..." << std::endl;
+		std::cout << "Generowanie 100 punktow startowych..." << std::endl;
 
+		// 1. Pre-generowanie 100 punktów startowych
 		std::vector<matrix> start_points;
 		std::random_device rd;
 		std::mt19937 gen(rd());
-		std::uniform_real_distribution<> dist(-2.0, 2.0); // Zakres punktu startowego [cite: 33]
+		std::uniform_real_distribution<> dist(-2.0, 2.0);
 
 		for (int i = 0; i < 100; ++i) {
-			matrix p(2, 1);
-			p(0) = dist(gen);
-			p(1) = dist(gen);
-			start_points.push_back(p);
+			double x1 = dist(gen);
+			double x2 = dist(gen);
+			start_points.push_back(matrix(2, new double[2] {x1, x2}));
 		}
 
 		std::ofstream file_5a("lab4_zad5a.csv");
-		file_5a << "Metoda;Krok;h0;Lp;x0_1;x0_2;x_opt_1;x_opt_2;y_opt;f_calls;g_calls;H_calls;Status\n";
+		if (!file_5a.is_open()) throw std::string("Nie udalo sie otworzyc pliku lab4_zad5a.csv");
 
-		double s_sizes[] = { 0.05, 0.25, 0.0 };
-		std::string s_names[] = { "0.05", "0.25", "Zmienny" };
+		file_5a << "Metoda;Krok_Typ;h0;Iteracja;x0_1;x0_2;x_opt_1;x_opt_2;y_opt;f_calls;g_calls;H_calls;Status\n";
 
-		for (int k = 0; k < 3; ++k) {
-			for (int i = 0; i < 100; ++i) {
-				// SD
+		double step_sizes[] = { 0.05, 0.25, 0.0 };
+		std::string step_names[] = { "Staly 0.05", "Staly 0.25", "Zmienny" };
+
+		// --- Metoda Najszybszego Spadku (SD) ---
+		std::cout << "Obliczenia dla metody SD..." << std::endl;
+		for (int k = 0; k < 3; ++k)
+		{
+			for (int i = 0; i < 100; ++i)
+			{
 				solution::clear_calls();
-				solution r_sd = SD(ff4T, gf4T, start_points[i], s_sizes[k], epsilon, Nmax);
-				file_5a << "SD;" << s_names[k] << ";" << s_sizes[k] << ";" << (i + 1) << ";" << start_points[i](0) << ";" << start_points[i](1) << ";" << r_sd.x(0) << ";" << r_sd.x(1) << ";" << r_sd.y(0) << ";" << r_sd.f_calls << ";" << r_sd.g_calls << ";0;" << r_sd.flag << "\n";
+				solution res = SD(ff4T, gf4T, start_points[i], step_sizes[k], epsilon, Nmax);
 
-				// CG
-				solution::clear_calls();
-				solution r_cg = CG(ff4T, gf4T, start_points[i], s_sizes[k], epsilon, Nmax);
-				file_5a << "CG;" << s_names[k] << ";" << s_sizes[k] << ";" << (i + 1) << ";" << start_points[i](0) << ";" << start_points[i](1) << ";" << r_cg.x(0) << ";" << r_cg.x(1) << ";" << r_cg.y(0) << ";" << r_cg.f_calls << ";" << r_cg.g_calls << ";0;" << r_cg.flag << "\n";
-
-				// Newton
-				solution::clear_calls();
-				solution r_nw = Newton(ff4T, gf4T, hf4T, start_points[i], s_sizes[k], epsilon, Nmax);
-				file_5a << "Newton;" << s_names[k] << ";" << s_sizes[k] << ";" << (i + 1) << ";" << start_points[i](0) << ";" << start_points[i](1) << ";" << r_nw.x(0) << ";" << r_nw.x(1) << ";" << r_nw.y(0) << ";" << r_nw.f_calls << ";" << r_nw.g_calls << ";" << r_nw.H_calls << ";" << r_nw.flag << "\n";
+				file_5a << "SD;" << step_names[k] << ";" << step_sizes[k] << ";" << (i + 1) << ";"
+					<< start_points[i](0) << ";" << start_points[i](1) << ";"
+					<< res.x(0) << ";" << res.x(1) << ";"
+					<< res.y(0, 0) << ";"
+					<< res.f_calls << ";" << res.g_calls << ";" << 0 << ";"
+					<< res.flag << "\n";
 			}
 		}
+
+		// --- Metoda Gradientów Sprzężonych (CG) ---
+		std::cout << "Obliczenia dla metody CG..." << std::endl;
+		for (int k = 0; k < 3; ++k)
+		{
+			for (int i = 0; i < 100; ++i)
+			{
+				solution::clear_calls();
+				solution res = CG(ff4T, gf4T, start_points[i], step_sizes[k], epsilon, Nmax);
+
+				file_5a << "CG;" << step_names[k] << ";" << step_sizes[k] << ";" << (i + 1) << ";"
+					<< start_points[i](0) << ";" << start_points[i](1) << ";"
+					<< res.x(0) << ";" << res.x(1) << ";"
+					<< res.y(0, 0) << ";"
+					<< res.f_calls << ";" << res.g_calls << ";" << 0 << ";"
+					<< res.flag << "\n";
+			}
+		}
+
+		// --- Metoda Newtona ---
+		std::cout << "Obliczenia dla metody Newtona..." << std::endl;
+		for (int k = 0; k < 3; ++k)
+		{
+			for (int i = 0; i < 100; ++i)
+			{
+				solution::clear_calls();
+				solution res = Newton(ff4T, gf4T, hf4T, start_points[i], step_sizes[k], epsilon, Nmax);
+
+				file_5a << "Newton;" << step_names[k] << ";" << step_sizes[k] << ";" << (i + 1) << ";"
+					<< start_points[i](0) << ";" << start_points[i](1) << ";"
+					<< res.x(0) << ";" << res.x(1) << ";"
+					<< res.y(0, 0) << ";"
+					<< res.f_calls << ";" << res.g_calls << ";" << res.H_calls << ";"
+					<< res.flag << "\n";
+			}
+		}
+
 		file_5a.close();
-		std::cout << "Zakonczono zadanie 5a (lab4_zad5a.csv)" << std::endl;
+		std::cout << "Zakonczono zadanie 5a. Wyniki w pliku lab4_zad5a.csv" << std::endl;
 #endif
 
 		// ========================================================================
-		// ZADANIE 5b: Problem rzeczywisty (Klasyfikacja) [cite: 52]
+		// ZADANIE 5b: Problem rzeczywisty (Praktyczne)
 		// ========================================================================
 #ifdef PRAKTYCZNE4
-		std::cout << "\nRozpoczynam zadanie 5b (klasyfikacja)..." << std::endl;
-		matrix X = read_matrix_from_file(3, 100, "XData.txt"); // Dane uczące 
-		matrix Y = read_matrix_from_file(1, 100, "YData.txt"); // Decyzje 
+		std::cout << "Rozpoczynam zadanie 5b (klasyfikacja)..." << std::endl;
 
 		std::ofstream file_5b("lab4_zad5b.csv");
-		file_5b << "h0;theta_0;theta_1;theta_2;J_opt;f_calls;g_calls;Acc;Status\n";
+		if (!file_5b.is_open()) throw std::string("Nie udalo sie otworzyc pliku lab4_zad5b.csv");
+		file_5b << "Krok(h0);theta_0;theta_1;theta_2;f_kosztu;f_calls;g_calls;Skutecznosc(%);Status\n";
 
-		double steps_real[] = { 0.01, 0.001, 0.0001 }; // Kroki dla klasyfikatora [cite: 77]
-		matrix theta_start(3, 1, 0.0); // Punkt startowy [0,0,0] [cite: 89]
+		matrix X = read_matrix_from_file(3, 100, "XData.txt");
+		matrix Y = read_matrix_from_file(1, 100, "YData.txt");
 
-		for (double h : steps_real) {
+		std::cout << "\n--- WERYFIKACJA POPRAWNOSCI FUNKCJI ---" << std::endl;
+		matrix theta_test(3, new double[3] {0.1, 0.1, 0.1});
+		matrix J_test = ff4R(theta_test, X, Y);
+		matrix G_test = gf4R(theta_test, X, Y);
+
+		std::cout << "Dla theta = [0.1, 0.1, 0.1]:" << std::endl;
+		std::cout << "J(theta) = " << J_test(0) << " (Oczekiwane: ~2.72715)" << std::endl;
+		std::cout << "Gradient = \n" << G_test << "(Oczekiwane: ~0.299, ~13.60, ~13.35)" << std::endl;
+		std::cout << "---------------------------------------\n" << std::endl;
+		// ------------------------------------------------------------------------
+
+		// Punkt startowy do WŁAŚCIWEJ optymalizacji musi być [0, 0, 0]
+		matrix theta_start(3, new double[3] {0.0, 0.0, 0.0});
+
+		double steps_real[] = { 0.01, 0.001, 0.0001 };
+
+		for (double h : steps_real)
+		{
 			solution::clear_calls();
-			solution t_opt = CG(ff4R, gf4R, theta_start, h, epsilon, Nmax, X, Y);
 
-			int ok = 0;
-			for (int i = 0; i < 100; ++i) {
-				double h_val = 1.0 / (1.0 + exp(-(trans(t_opt.x) * X[i])(0))); // Hipoteza [cite: 56]
-				if (((h_val >= 0.5) ? 1 : 0) == (int)Y(0, i)) ok++; // Kryterium przyjęcia [cite: 61, 91]
+			// Tu używamy theta_start = [0,0,0]
+			solution theta_opt = CG(ff4R, gf4R, theta_start, h, epsilon, Nmax, X, Y);
+
+			// Obliczanie skuteczności klasyfikacji
+			int correct_predictions = 0;
+			int m = 100;
+
+			for (int i = 0; i < m; ++i)
+			{
+				matrix xi = X[i];
+				double yi = Y(0, i);
+				double z = (trans(theta_opt.x) * xi)(0);
+				double h_val = 1.0 / (1.0 + exp(-z));
+
+				int prediction = (h_val >= 0.5) ? 1 : 0;
+				if (prediction == (int)yi) correct_predictions++;
 			}
-			double accuracy = (double)ok; // Skuteczność w % [cite: 90]
 
-			std::cout << "Krok h=" << h << " | Accuracy: " << accuracy << "%" << std::endl;
-			file_5b << h << ";" << t_opt.x(0) << ";" << t_opt.x(1) << ";" << t_opt.x(2) << ";" << t_opt.y(0) << ";" << t_opt.f_calls << ";" << t_opt.g_calls << ";" << accuracy << ";" << t_opt.flag << "\n";
+			double accuracy = (double)correct_predictions / m * 100.0;
+
+			std::cout << "Krok h=" << h << " | Koszt=" << theta_opt.y(0) << " | Acc=" << accuracy << "%" << std::endl;
+
+			file_5b << h << ";"
+				<< theta_opt.x(0) << ";" << theta_opt.x(1) << ";" << theta_opt.x(2) << ";"
+				<< theta_opt.y(0) << ";"
+				<< theta_opt.f_calls << ";" << theta_opt.g_calls << ";"
+				<< accuracy << ";"
+				<< theta_opt.flag << "\n";
 		}
+
 		file_5b.close();
-		std::cout << "Zakonczono zadanie 5b (lab4_zad5b.csv)" << std::endl;
+		std::cout << "Zakonczono zadanie 5b. Wyniki w pliku lab4_zad5b.csv" << std::endl;
 #endif
+
 	}
-	catch (std::string ex) { std::cerr << "BLAD: " << ex << std::endl; }
+	catch (std::string ex_info)
+	{
+		std::cerr << "WYSTAPIL BLAD: " << ex_info << std::endl;
+	}
 }
 
 void lab5()
